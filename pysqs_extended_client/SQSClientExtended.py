@@ -109,7 +109,7 @@ class SQSClientExtended(object):
 		total_msg_size = msg_attributes_size + msg_body_size
 		return (total_msg_size > self.message_size_threshold)
 
-	def receive_message(self, queue_url, max_number_Of_Messages=1, wait_time_seconds=10):
+	def receive_message(self, queue_url, max_number_Of_Messages=1, wait_time_seconds=10, visibility_timeout=None):
 		"""
 		Retrieves one or more messages (up to 10), from the specified queue. Using the WaitTimeSeconds parameter enables long-poll support
 			The message body.
@@ -120,7 +120,10 @@ class SQSClientExtended(object):
 			An MD5 digest of the message attributes.
 			The receipt handle is the identifier you must provide when deleting the message
 		"""
-		response_opt_queue = self.sqs.receive_message(QueueUrl=queue_url, AttributeNames=['All'], MessageAttributeNames=['All', ], MaxNumberOfMessages=max_number_Of_Messages, WaitTimeSeconds=wait_time_seconds,)
+		opts = {'QueueUrl': queue_url, 'AttributeNames': ['All'], 'MessageAttributeNames': ['All', ], 'MaxNumberOfMessages': max_number_Of_Messages, 'WaitTimeSeconds': wait_time_seconds}
+		if visibility_timeout is not None:
+			opts['VisibilityTimeout'] = visibility_timeout
+		response_opt_queue = self.sqs.receive_message(**opts)
 		opt_messages = response_opt_queue.get('Messages', [])
 		if not opt_messages:
 			return None
