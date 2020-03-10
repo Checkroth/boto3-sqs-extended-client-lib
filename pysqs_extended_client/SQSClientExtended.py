@@ -167,7 +167,7 @@ class SQSClientExtended(object):
 		end_marker = receipt_handle.rindex(marker, start_marker)
 		return receipt_handle[start_marker:end_marker]
 
-	def __get_orig_receipt_handle(self, receipt_handle):
+	def get_orig_receipt_handle(self, receipt_handle):
 		return receipt_handle[receipt_handle.rindex(SQSExtendedClientConstants.S3_KEY_MARKER.value) + len(SQSExtendedClientConstants.S3_KEY_MARKER.value):]
 
 	def __is_s3_receipt_handle(self, receipt_handle):
@@ -186,7 +186,7 @@ class SQSClientExtended(object):
 		"""
 		if self.__is_s3_receipt_handle(receipt_handle):
 			self.__delete_message_payload_from_s3(receipt_handle)
-			receipt_handle = self.__get_orig_receipt_handle(receipt_handle)
+			receipt_handle = self.get_orig_receipt_handle(receipt_handle)
 		print("receipt_handle={}".format(receipt_handle))
 		self.sqs.delete_message(QueueUrl=queue_url, ReceiptHandle=receipt_handle)
 
