@@ -7,7 +7,7 @@ import tempfile
 
 from enum import Enum
 from boto3.session import Session
-from io import BytesIO
+from io import BytesIO, StringIO
 
 
 class SQSExtendedClientConstants(Enum):
@@ -41,6 +41,7 @@ class SQSClientExtended(object):
 		self.aws_secret_access_key = aws_secret_access_key
 		self.aws_region_name = aws_region_name
 		self.s3_bucket_name = s3_bucket_name
+		self.s3_bucket = Session(aws_access_key_id=self.aws_access_key_id, aws_secret_access_key=self.aws_secret_access_key, region_name=self.aws_region_name).resource('s3').Bucket(self.s3_bucket_name)
 		self.message_size_threshold = SQSExtendedClientConstants.DEFAULT_MESSAGE_SIZE_THRESHOLD.value
 		self.always_through_s3 = True
 		if aws_access_key_id and aws_secret_access_key and aws_region_name:
@@ -243,17 +244,9 @@ class SQSClientExtended(object):
 		"""
 		try:
 			s3_key = str(uuid.uuid4())
-			session = Session(aws_access_key_id=self.aws_access_key_id, aws_secret_access_key=self.aws_secret_access_key, region_name=self.aws_region_name)
-			s3 = session.resource('s3')
-			opt_file = tempfile.NamedTemporaryFile(mode='w+', encoding='utf-8', delete=False)
-			opt_file.write(str(message_body))
-			opt_file.flush()
-			reader = open(opt_file.name, mode='r', encoding='utf-8')
-			s3.Bucket(self.s3_bucket_name).put_object(Key=s3_key, Body=reader.read())
-			reader.close()
-			opt_file.close()
-			if os.path.exists(opt_file.name):
-				os.remove(opt_file.name)
+			body_stream = StringIO(str_message_body))
+			self.s3_bucket.put_object(Key=s3_key, Body=body_stream)
+			body_stream.close()
 			return {'s3BucketName': self.s3_bucket_name, 's3Key': s3_key}
 		except Exception as e:
 			print("Failed to store the message content in an S3 object. SQS message was not sent. {}, type:{}".format(
