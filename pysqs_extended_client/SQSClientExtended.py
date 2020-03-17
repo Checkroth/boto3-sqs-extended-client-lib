@@ -244,7 +244,7 @@ class SQSClientExtended(object):
 		"""
 		try:
 			s3_key = str(uuid.uuid4())
-			body_stream = StringIO(str(message_body))
+			body_stream = BytesIO(message_body)
 			self.s3_bucket.put_object(Key=s3_key, Body=body_stream)
 			body_stream.close()
 			return {'s3BucketName': self.s3_bucket_name, 's3Key': s3_key}
