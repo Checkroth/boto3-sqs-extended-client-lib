@@ -244,6 +244,8 @@ class SQSClientExtended(object):
 		"""
 		try:
 			s3_key = str(uuid.uuid4())
+			if not isinstance(message_body, bytes):
+				message_body = message_body.encode('utf-8')
 			body_stream = BytesIO(message_body)
 			self.s3_bucket.put_object(Key=s3_key, Body=body_stream)
 			body_stream.close()
