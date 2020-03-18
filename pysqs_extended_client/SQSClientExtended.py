@@ -259,12 +259,10 @@ class SQSClientExtended(object):
 		"""
 		Get string representation of a sqs object and store into original SQS message object
 		"""
-		session = Session(aws_access_key_id=self.aws_access_key_id, aws_secret_access_key=self.aws_secret_access_key, region_name=self.aws_region_name)
-		s3 = session.resource('s3')
-		bucket = s3.Bucket(s3_bucket_name)
-		objs = list(bucket.objects.filter(Prefix=s3_key))
+		objs = list(self.s3_bucket.objects.filter(Prefix=s3_key))
 		if objs and objs[0].key == s3_key:
-			bucket.Object(s3_key).download_fileobj(data_byte_io)
+			data_byte_io = BytesIO()
+			self.s3_bucket.Object(s3_key).download_fileobj(data_byte_io)
 			data_byte_io.seek(0)
 			return data_byte_io.read().decode('utf-8')
 		return None
